@@ -1,0 +1,478 @@
+<!-- Visualizing along a pruned taxonimic tree the NOX-putative occurences  
+  inspired from https://bl.ocks.org/d3indepth/f349b9aedec5206fbb9e83a6e246304a
+-->
+
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>
+  <title>Tree layout</title>
+</head>
+
+<style>
+div.tooltip {	
+    position: absolute;			
+    text-align: center;			
+    /*width: 120px;					*/
+    /*height: 2.5em;					*/
+    padding: 0.5em;				
+    font: 12px sans-serif;		
+    background: lightsteelblue;	
+    border: 0px;		
+    border-radius: 8px;			
+    /*pointer-events: none;			*/
+    z-index:1;
+}
+div.taxid {
+  font: 0.8em sans-serif;
+  font-weight: 200;
+  color: cornsilk;
+}
+div.tooltip .cnt {
+  font: 12px sans-serif;	
+  font-weight: bold;
+}	
+div.tooltip .foot {
+  text-align: right;
+  font: 8px sans-serif;	
+  text-decoration: underline;
+  cursor: pointer;
+  color: darkblue;
+}	
+.node {
+  /*fill: steelblue;*/
+  stroke: none;
+}
+
+.link {
+  fill: none;
+  stroke: #ccc;
+  stroke-width: 1px;
+}
+</style>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.2.2/d3.min.js"></script>
+  <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+  <script>
+
+    function loadJSON(callback) {   
+      
+        //let jsonDataLocation = './NOX_annotation_20180619-165729_d3tree.json'
+        let jsonDataLocation = 'api/1'
+        let buf = window.location.href.split('/');
+        //console.log(buf);
+        if(buf[buf.length -1] != '')
+          jsonDataLocation = 'api/' + buf[buf.length -1];
+       // if (buf.length > 1)
+       //   jsonDataLocation = buf[1];
+        //let value = 
+        //let jsonDataLocation = 'tree';
+       // console.log(jsonDataLocation);
+        var xobj = new XMLHttpRequest();
+        xobj.overrideMimeType("application/json");
+        xobj.open('GET', jsonDataLocation, true); // Replace 'my_data' with the path to your file
+        xobj.onreadystatechange = function () {
+            if (xobj.readyState == 4 && xobj.status == "200") {
+        // Required use of an anonymous callback as .open will NOT return a value but simply returns undefined in asynchronous mode
+          //    console.log('OK');
+          //    console.dir(xobj.responseText)
+              callback(xobj.responseText);
+            }
+        };
+        xobj.send(null);  
+    }
+
+
+/*var data = {
+  "name": "A1",
+  "children": [
+    {
+      "name": "B1",
+      "children": [
+        {
+          "name": "C1",
+          "value": 100
+        },
+        {
+          "name": "C2",
+          "value": 300
+        },
+        {
+          "name": "C3",
+          "value": 200
+        }
+      ]
+    },
+    {
+      "name": "B2",
+      "value": 200
+    }
+  ]
+}
+*/
+
+function getMax(node){
+  let x = node.cnt;
+
+  if (node.children.length == 0)
+    return x;
+
+  let values = node.children.map(function(e){
+      return getMax(e);
+    });
+  values.forEach(e => {
+    if (e > x)
+      x = e;
+  });
+  return x;
+}
+
+function draw(response) {
+  
+
+  let data = JSON.parse(response);
+    /*console.log(actual_JSON);
+    return;*/
+  let max = getMax(data);
+  //console.log(max);
+
+  color = d3.scaleLog().domain([1, max])
+      //.interpolate(d3.interpolateHcl)
+      .range([d3.rgb("#4682b4"), d3.rgb('#fd0004')]);
+
+  var treeLayout = d3.tree()
+    .size([2500, 400])
+
+  // Define the div for the tooltip
+  let div = d3.select("div.tooltip")	
+    //.attr("class", "tooltip")				
+    .style("opacity", 0);
+    root = d3.hierarchy(data)
+
+    treeLayout(root)
+
+    // Links
+    d3.select('svg g.links')
+    .selectAll('line.link')
+    .data(root.links())
+    .enter()
+    .append('line')
+    .classed('link', true)
+    .attr('x1', function(d) {return d.source.x;})
+    .attr('y1', function(d) {return d.source.y;})
+    .attr('x2', function(d) {return d.target.x;})
+    .attr('y2', function(d) {return d.target.y;});
+
+
+    //let maxCategory = 20;
+    //let colorScale = d3.scaleOrdinal("schemeCategory20c");
+    //console.log(root);
+
+    //d3.schemeSpectral[k]
+   // pfamScale = d3.scalePoint(d3.schemeSpectral[root.data.pfam.length]).domain(root.data.pfam);//.range([0,1])
+      root.data.pfam.length
+      window.pfamScale = d3.scalePoint().domain(root.data.pfam).range([0,1]);
+
+    let nodeArc = d3.arc()
+    	.innerRadius(0)
+    	.outerRadius(4)
+    	.cornerRadius(0)
+    
+    d3.select('svg g.nodes')
+      .selectAll('g.node')
+      .data(root.descendants())
+      .enter()
+      .append('g')
+      .classed('node', true)
+      .attr("transform", function(d) {return "translate(" + d.x + "," + d.y +")";})
+      .on("click", function (d){		
+        //this.html
+       // d3.select(this).cloneNode(true)
+        let cHTML = d3.select(this).html();			        
+        //console.log(this);
+      
+        d.magnified = d3.selectAll('g.nodes').append('g').classed('node magnified', true)
+          .attr("transform", function() {
+           // console.log("translate(" + d.x + "," + d.y +")");
+            return "translate(" + d.x + "," + d.y +")";
+          });
+          d.magnified.html(cHTML);
+          d.magnified.on("mouseout",function(){
+            d3.select(this).remove();
+          });
+      })
+      .on("mouseover", function(d) {	
+        let cHTML = d3.select(this).html();			        
+        //console.log(this);
+      
+        d.magnified = d3.selectAll('g.nodes').append('g').classed('node magnified', true)
+          .attr("transform", function() {
+           // console.log("translate(" + d.x + "," + d.y +")");
+            return "translate(" + d.x + "," + d.y +")";
+          });
+          d.magnified.html(cHTML);
+          d.magnified.on("mouseout",function(){
+            d3.select(this).remove();
+          });
+        div.transition()		
+          .duration(200)		
+          .style("opacity", 1);		
+        div.html('<div>' + d.data.name + '<div class="taxid">' 
+            + '<a href ="https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=' 
+            + d.data.taxid + '" target="blank">' + d.data.taxid + '</a></div></div><div class="cnt">' 
+            + d.data.cnt 
+            + '<svg width="220" height="220"></svg>'
+            + '</div><div class="foot">Close</foot>')	
+            .style("left", (d3.event.pageX + 10 )+ "px")		
+            .style("top", (d3.event.pageY - 50 ) + "px");
+       // div.on("mouseover", function(d) {	console.log('toto');})
+        div.selectAll(".foot")
+        .on('click',function(){
+          div.transition()		
+            .duration(500)		
+            .style("opacity", 0);	
+        });
+
+        let g = div.selectAll('svg')
+            .append('g').classed('bigPie', true);
+        drawBigPie(g, d);
+      })
+      .on("mouseout", function(d) {	
+        return
+        console.log("==>");
+        console.dir(d);
+        div.transition()		
+            .duration(500)		
+            .style("opacity", 0);	
+      })
+      //.append('circle')
+      .selectAll('path')
+      .data(function(d){
+       // if(d.data.pfam.length > 20);
+          //console.log(d.data);
+        //let arc = [1]
+        //let arcs = d3.pie()([55, 89]);
+        let arcs = d3.pie()
+        .sort(null)
+        .value((d)=>{ return d.val;})
+        (d.data.pfam.map((e)=> { return { 'val':1, 'id': e }; } ));
+        return arcs;
+      })
+      .enter()
+      .append("path")
+      .style("fill", function(d){
+        //console.log(d);
+        //console.log(pfamScale(d.data.id));
+        return d3.interpolateSpectral(window.pfamScale(d.data.id));
+      })
+      .attr("d", nodeArc);
+  
+      d3.select('svg')
+      .on('click', function(){
+        unLookFor();
+        div.transition()		
+            .duration(500)		
+            .style("opacity", 0);	
+      })
+}
+
+function lookFor(key){
+  let seekRe = new RegExp(key, "gi");
+  let re = /^(translate\([^\)]+\))/;
+  d3.selectAll('g.node')
+  .attr("transform", function(d){ 
+    let m = re.exec(d3.select(this).attr('transform'));
+    return seekRe.exec(d.data.name) ? m[0] + " scale(3,3)" : m[0]; 
+  });
+}
+
+function unLookFor(){
+  let re = /^(translate\([^\)]+\))/;
+  d3.selectAll('g.node')
+  .attr("transform", function(d){
+    let m = re.exec(d3.select(this).attr('transform'));
+    //console.dir(m);
+    return m[0];
+  });
+
+}
+
+function probePfamOccurence(wsNode){
+  //if (!node.hasOwnProperty('children'))
+  node = wsNode.data;
+
+  let results = {};
+ // console.log(">>><<<<");
+ // console.dir(node)
+  if(node.children.length == 0){ 
+    node.pfam.forEach((d)=>{
+      if (!results.hasOwnProperty(d))
+        results[d] = 0;
+     // console.dir(results);
+      results[d] += 1;
+    });
+    /*console.log("Returning");
+    console.dir(results);*/
+    return results;
+  }
+
+  // Collect results from children
+  let collected = wsNode.children.map(probePfamOccurence);
+  for (let childrenResults of collected) {
+    for(let pfamID in childrenResults) {
+      if (!results.hasOwnProperty(pfamID))
+        results[pfamID]  = 0;
+    //console.log("==>")
+    //console.dir(childrenResults[pfamID])
+    results[pfamID] += childrenResults[pfamID];
+    }
+  }
+
+  return results;
+}
+
+
+function drawBigPie(g, node) {
+  //console.dir(node);
+  let data = probePfamOccurence(node);
+  
+  pieData=[];
+  for(let id in data){
+    pieData.push( {'id' : id, 'value' : data[id]} );
+  }
+  
+  //console.dir(pieData);
+
+  g.append("g")
+	.attr("class", "slices");
+  g.append("g")
+	.attr("class", "labels");
+  g.append("g")
+	.attr("class", "lines");
+
+  let width = 120,
+    height = 120,
+	  radius = Math.min(width, height) / 2;
+  g.attr("transform", "translate(" + 220 / 2 + "," + 220 / 2 + ")");
+  
+  let pie = d3.pie()
+    .padAngle(.02)
+	  .sort(null)
+	  .value(function(d) {
+		  return d.value;
+	  });
+  
+  let key = function(d){return d.data.id; };
+
+  let arc = d3.arc()
+	  .outerRadius(radius * 0.8)
+	  .innerRadius(radius * 0.4);
+
+  let outerArc = d3.arc()
+	  .innerRadius(radius * 0.9)
+  	.outerRadius(radius * 0.9);
+
+  let slice = g.select(".slices").selectAll("path.slice")
+		.data(pie(pieData), key);
+
+	slice.enter()
+		.insert("path")
+		.style("fill", function(d) { 
+      return d3.interpolateSpectral(window.pfamScale(d.data.id));
+     })
+		.attr("class", "slice")
+    .attr("d", arc)
+  //console.dir(data);
+
+
+  	/* ------- TEXT LABELS -------*/
+
+	let text = g.select(".labels").selectAll("text")
+		.data(pie(pieData), key);
+
+	text.enter()
+		.append("text")
+		.attr("dy", ".35em")
+    .attr("text-anchor", function(d){
+      return midAngle(d) < Math.PI ? "start":"end";
+    })
+		.attr("transform", function(d) {
+        console.dir(d);
+        console.log(midAngle(d));
+        console.log(outerArc.centroid(d));
+        let x = outerArc.centroid(d)[0];
+        y = outerArc.centroid(d)[1];
+        
+        /*let pos = outerArc.centroid(d);
+				pos = radius * (midAngle(d) < Math.PI ? 1 : -1);*/
+
+				return `translate(${x} ${y})`;
+    })
+    .text(function(d) {
+			return d.data.id;
+		})
+    .attr("font-size", "8px")
+    .attr("font-weight", "400")
+    .style('cursor', 'pointer')
+    .on("click", function(d){
+      window.open('https://pfam.xfam.org/family/' + d.data.id, '_blank');
+      console.log(d);
+    });
+		/* ------- SLICE TO TEXT POLYLINES -------*/
+
+	var polyline = g.select(".lines").selectAll("polyline")
+		.data(pie(pieData), key);
+	
+	polyline.enter()
+		.append("polyline")
+    .attr("points", function(d){
+      let pos = outerArc.centroid(d);
+			pos[0] = radius * 0.95 * (midAngle(d) < Math.PI ? 1 : -1);
+      return [arc.centroid(d), outerArc.centroid(d)];			
+		});
+
+
+  
+/*
+	text.transition().duration(1000)
+		.attrTween("transform", function(d) {
+			this._current = this._current || d;
+			var interpolate = d3.interpolate(this._current, d);
+			this._current = interpolate(0);
+			return function(t) {
+				var d2 = interpolate(t);
+				var pos = outerArc.centroid(d2);
+				pos[0] = radius * (midAngle(d2) < Math.PI ? 1 : -1);
+				return "translate("+ pos +")";
+			};
+		})
+		.styleTween("text-anchor", function(d){
+			this._current = this._current || d;
+			var interpolate = d3.interpolate(this._current, d);
+			this._current = interpolate(0);
+			return function(t) {
+				var d2 = interpolate(t);
+				return midAngle(d2) < Math.PI ? "start":"end";
+			};
+		});
+    */
+}
+function midAngle(d){
+		return d.startAngle + (d.endAngle - d.startAngle)/2;
+	}
+
+window.onload = function() {
+  loadJSON(draw);
+};
+    
+</script>
+
+  <body>
+    <div class="tooltip"></div>
+    <svg width="2540" height="420">
+      <g transform="translate(5, 5)">
+        <g class="links"></g>
+        <g class="nodes"></g>
+      </g>
+    </svg>
+  </body>
+</html>
