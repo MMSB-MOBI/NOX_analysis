@@ -3,7 +3,7 @@
 #/mobi/group/NOX_GL $ ./scripts/runPsiBlast_slurm.sh /mobi/group/NOX_GL/toEMBOSS /mobi/group/NOX_GL/psiblastWork
 DATA_DIR=$1
 OUTDIR=$2
-SCRIPT="/mobi/group/NOX_GL/scripts"
+SCRIPT="/mobi/group/NOX_GH/nox_analysis/scripts"
 DB="uniprot_trembl"
 MIN_COV="0.8"
 
@@ -26,9 +26,9 @@ cat << EOF > $wDir/runPsiBlast.sbatch
 #connect standart output of Slurm to the file name specified
 #SBATCH -e ${tag}_PB.err
 #connect standart error of Slurm to the file name specified
-#SBATCH -p medium-mobi # Partition to submit to
+#SBATCH -p medium # Partition to submit to
 #specify the core for ressource allocation
-#SBATCH --qos medium-mobi # Partition to submit to
+#SBATCH --qos medium # Partition to submit to
 
 #QOS value is define for quality of this job
 source /etc/profile.d/modules.sh
