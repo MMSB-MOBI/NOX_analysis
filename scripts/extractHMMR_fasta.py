@@ -30,7 +30,7 @@ matchID = list( set(matchID) )
 
 #print len(matchID)
 if not matchID:
-    print '#No protein detected by HMMR'
+    #print '#No protein detected by HMMR'
     sys.exit()
 # Write the content of the multifasta volumes thaht correspond to the aforextracted names
 with gzip.open(fastaVolumeFile, 'r') as f:
