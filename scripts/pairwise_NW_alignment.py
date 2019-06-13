@@ -1,8 +1,5 @@
 import sys, os
 import pickle
-sys.path.append("/Users/chilpert/Work/pyproteinsExt/src")
-sys.path.append("/Users/chilpert/Work/pyproteins/src")
-
 import pyproteins.sequence.peptide as pep
 import pyproteins.alignment.nw_custom as N
 import pyproteins.alignment.scoringFunctions as scoringFunctions
