@@ -46,7 +46,7 @@ hmmsearch $hmmProfileLocation/ferric_reduct.hmm trembl.fasta >> hmmsearch.out
 hmmsearch $hmmProfileLocation/nad_binding.hmm trembl.fasta >> hmmsearch.out
 
 rm trembl.fasta
-python /mobi/group/NOX_CH/nox-analysis/scripts/extractHMMR_fasta.py hmmsearch.out $inputFilePath > hmmsearch.fasta
+/bin/python /mobi/group/NOX_clean/nox-analysis/scripts/extractHMMR_fasta.py hmmsearch.out $inputFilePath > hmmsearch.fasta
 tmhmm hmmsearch.fasta > tmhmm.out
 cp hmmsearch.out $originDir
 cp hmmsearch.fasta $originDir
