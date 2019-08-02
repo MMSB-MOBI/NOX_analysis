@@ -2,18 +2,21 @@ import gzip
 import re
 import sys
 ### Extract protein Hit from a profile scan against a protein DB
-hmmrResultFile=sys.argv[1]
-fastaVolumeFile=sys.argv[2]
+hmmrResultFile = sys.argv[1]
+fastaVolumeFile = sys.argv[2]
 
 rBool = False
 lBool = False
-matchID=[]
+matchID = []
 
 
 
 # Extract sequence name that were annotated by HMMR
 with open(hmmrResultFile,'r') as f:
     for l in f:
+        if l.startswith('    ------- ------ -----    ------- ------ -----   ---- --  --------              -----------'):
+            rBool = True
+            continue
         if l.startswith('    ------- ------ -----    ------- ------ -----   ---- --  --------                       -----------'):
             rBool = True
             continue
@@ -22,7 +25,7 @@ with open(hmmrResultFile,'r') as f:
             continue
         if re.search('^[\s]*$', l):
             rBool = False
-            
+        
         if rBool:
             matchID.append(l.split()[8])
 
