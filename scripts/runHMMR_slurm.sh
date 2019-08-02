@@ -21,9 +21,9 @@ cat << EOF > $originDir/runHMM.sbatch
 
 #SBATCH -J $id
 #specify nameID for job allocation
-#SBATCH -o HMMRjob.out
+#SBATCH -o $originDir/HMMRjob.out
 #connect standart output of Slurm to the file name specified
-#SBATCH -e HMMRjob.err
+#SBATCH -e $originDir/HMMRjob.err
 #connect standart error of Slurm to the file name specified
 #SBATCH -p medium # Partition to submit to
 #specify the core for ressource allocation
@@ -50,7 +50,6 @@ python /mobi/group/NOX_CH/nox-analysis/scripts/extractHMMR_fasta.py hmmsearch.ou
 tmhmm hmmsearch.fasta > tmhmm.out
 cp hmmsearch.out $originDir
 cp hmmsearch.fasta $originDir
-cp HMMRjob.* $originDir
 cp tmhmm.out $originDir
 
 EOF
