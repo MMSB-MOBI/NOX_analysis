@@ -2,6 +2,7 @@
 
 DATA_DIR=$1 # Location of all pickled peptides objects
 OUT_DIR=$2  # Folder where slurm workdir will be created
+SCRIPT_DIR=$3
 
 
 setJob() {
@@ -22,9 +23,9 @@ cat << EOF > $originDir/runNW.sbatch
 #connect standart output of Slurm to the file name specified
 #SBATCH -e NWjob.err
 #connect standart error of Slurm to the file name specified
-#SBATCH -p medium # Partition to submit to
+#SBATCH -p express # Partition to submit to
 #specify the core for ressource allocation
-#SBATCH --qos medium # Partition to submit to
+#SBATCH --qos express # Partition to submit to
 
 #QOS value is define for quality of this job
 source /etc/profile.d/modules.sh
@@ -34,7 +35,7 @@ module load pyproteins
 
 cd \$WORKDIR
 
-/usr/bin/python3.6 /mobi/group/NOX_CH/nox-analysis/scripts/pairwise_NW_alignment.py $inputFilePath nw_align.pickle
+python3 /mobi/group/NOX_CH/nox-analysis/scripts/pairwise_NW_alignment $inputFilePath nw_align.pickle
 cp nw_align.pickle $originDir
 cp NWjob.* $originDir
 
@@ -44,12 +45,12 @@ echo $originDir/runNW.sbatch
 }
 
 i=0
-for ifile in `find $DATA_DIR -name "*_package*.pickle"`
+for ifile in `find $DATA_DIR -name "NAD_binding_package*.pickle"`
     do
-    #echo $ifile
+    echo $ifile
     sbatchFile=`setJob $OUT_DIR $ifile`
-    echo "Launching sbatch $sbatchFile"
-    sbatch $sbatchFile
+    #echo "Launching sbatch $sbatchFile"
+    #sbatch $sbatchFile
     ((i++))
     #[ $i -eq 10 ] && break
 done
