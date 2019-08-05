@@ -3,8 +3,8 @@
 #/mobi/group/NOX_GL $ ./scripts/runPsiBlast_slurm.sh /mobi/group/NOX_GL/toEMBOSS /mobi/group/NOX_GL/psiblastWork
 DATA_DIR=$1
 OUTDIR=$2
-SCRIPT="/mobi/group/NOX_GH/nox_analysis/scripts"
-DB="uniprot_trembl"
+SCRIPT="/mobi/group/NOX_CH/nox_analysis/scripts"
+DB="nr"
 MIN_COV="0.8"
 
 
@@ -16,6 +16,7 @@ do
 tag=$(basename $ifile .fasta)
 echo $tag
 wDir=$OUTDIR/$tag
+echo $wDir
 mkdir -p $wDir
 cat << EOF > $wDir/runPsiBlast.sbatch
 #!/bin/bash
@@ -57,5 +58,5 @@ cp $tag.* $wDir
 
 EOF
 cd $wDir
-sbatch $wDir/runPsiBlast.sbatch
+sbatch runPsiBlast.sbatch
 done
