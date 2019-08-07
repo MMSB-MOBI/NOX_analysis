@@ -60,7 +60,7 @@ echo $originDir/runHMM.sbatch
 echo $DATA_DIR
 
 i=0
-for ifile in `find $DATA_DIR -name "uniprot_trembl_v*.fasta.gz"`
+for ifile in `find $DATA_DIR -name "*.fasta.gz"`
     do
     echo $ifile
     sbatchFile=`setJob $OUT_DIR $ifile $HMM_DIR`
