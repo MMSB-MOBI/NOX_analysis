@@ -14,3 +14,7 @@ In notebook [Predict_NOX_proteins](https://github.com/glaunay/nox-analysis/blob/
     * Evalue filter : domains has to map with evalue <= 1e-3
 * Refine domains. Initial used domains are defined with mostly eukaryotes proteins. We take sequences of matched domains in non eukaryotic proteins to create new refined domains and relaunch analysis. 
 * Domains are refined until we don't found new proteins. 
+
+## 2. Study NOX domains
+
+In notebook [Domains_annotation][https://github.com/glaunay/nox-analysis/blob/ch_all_trembl/notebook/Domains_annotation.ipynb]
