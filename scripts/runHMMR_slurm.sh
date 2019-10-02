@@ -1,8 +1,8 @@
 #!/bin/bash
 
-DATA_DIR=$1 # Location of all fasta input gziped files 
-OUT_DIR=$2  # Folder where slurm workdir will be created
-HMM_DIR=$3  # Folders where hmm profile files are located
+DATA_DIR=$(readlink -f $1) # Location of all fasta input gziped files 
+OUT_DIR=$(readlink -f $2)  # Folder where slurm workdir will be created
+HMM_DIR=$(readlink -f $3)  # Folders where hmm profile files are located
 
 
 
@@ -25,9 +25,9 @@ cat << EOF > $originDir/runHMM.sbatch
 #connect standart output of Slurm to the file name specified
 #SBATCH -e $originDir/HMMRjob.err
 #connect standart error of Slurm to the file name specified
-#SBATCH -p medium # Partition to submit to
+#SBATCH -p express # Partition to submit to
 #specify the core for ressource allocation
-#SBATCH --qos medium # Partition to submit to
+#SBATCH --qos express # Partition to submit to
 
 #QOS value is define for quality of this job
 source /etc/profile.d/modules.sh
@@ -57,8 +57,6 @@ EOF
 echo $originDir/runHMM.sbatch
 }
 
-echo $DATA_DIR
-
 i=0
 for ifile in `find $DATA_DIR -name "*.fasta.gz"`
     do
@@ -67,5 +65,5 @@ for ifile in `find $DATA_DIR -name "*.fasta.gz"`
     echo "Launching sbatch $sbatchFile"
     sbatch $sbatchFile
     ((i++))
-    #[ $i -eq 10 ] && break
+    #[ $i -eq 5 ] && break
 done
